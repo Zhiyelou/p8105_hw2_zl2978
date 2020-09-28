@@ -1,0 +1,68 @@
+---
+title: "p8105_hw2_zl2978"
+author: Zhiye Lou
+output: github_document
+---
+I will first load the library.
+```{r}
+library(tidyverse)
+library(readxl)
+```
+
+## Problem 1
+I will first set the path to the data
+```{r}
+path_to_data_TW = "./data/Trash-Wheel-Collection-Totals-8-6-19.xlsx"
+```
+
+Then I will read the data and clean the data
+```{r}
+trashwheel_df = read_xlsx(
+    path = path_to_data_TW,
+    sheet = "Mr. Trash Wheel",
+    range = cell_cols("A:N")) %>% 
+janitor::clean_names() %>% 
+drop_na(dumpster) %>% 
+mutate(
+    sports_balls = round (sports_balls),
+    sports_balls = as.integer (sports_balls)
+)
+```
+
+Then I will read and clean precipitation data for 2017 and 2018
+```{r}
+ppt_2017 = read_xlsx(
+    path = path_to_data_TW,
+    sheet = "2017 Precipitation",
+    skip = 1) %>% 
+janitor::clean_names() %>% 
+drop_na(month) %>% 
+mutate(year = 2017) %>% 
+relocate(year)
+
+ppt_2018 = read_xlsx(
+    path = path_to_data_TW,
+    sheet = "2018 Precipitation",
+    skip = 1) %>% 
+janitor::clean_names() %>% 
+drop_na(month) %>% 
+mutate(year = 2018) %>% 
+relocate(year)
+```
+
+Next, I will combine precipitation datasets and convert month to a character variable
+```{r}
+month_df = 
+    tibble(month = 1:12,
+           month_name = month.name)
+precip_df = 
+	  bind_rows(ppt_2017, ppt_2018)
+precip_df =
+  	left_join(precip_df, month_df, by = "month") %>% 
+select(-month)
+```
+
+This dataset reports data from the Mr. Trashwheel trash collector in Baltimore, Maryland. The dataset contains information on year, month, and trash collected, include some specific kinds of trash. For the data of Trash Wheel, there are a total of `r nrow(trashwheel_df)` rows. The median number of sports balls found in a dumpster in 2017 was `r trashwheel_df %>% filter(year == 2017) %>% pull(sports_balls) %>% median()`.Additional data sheets include month precipitation data in year 2017 and year 2018. The dataset contains informaiton on year, month, and total percipitation in each month. There are a total of `r nrow(precip_df)` rows. The total precipitation in 2018 was `r precip_df %>% filter(year == 2018) %>% pull(total) %>% sum()` inches. The total precipitatio in 2017 was `r precip_df %>% filter(year == 2017) %>% pull(total) %>% sum()` inches. 
+
+
+
