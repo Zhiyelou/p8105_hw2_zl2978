@@ -62,7 +62,39 @@ precip_df =
 select(-month)
 ```
 
-This dataset reports data from the Mr. Trashwheel trash collector in Baltimore, Maryland. The dataset contains information on year, month, and trash collected, include some specific kinds of trash. For the data of Trash Wheel, there are a total of `r nrow(trashwheel_df)` rows. The median number of sports balls found in a dumpster in 2017 was `r trashwheel_df %>% filter(year == 2017) %>% pull(sports_balls) %>% median()`.Additional data sheets include month precipitation data in year 2017 and year 2018. The dataset contains informaiton on year, month, and total percipitation in each month. There are a total of `r nrow(precip_df)` rows. The total precipitation in 2018 was `r precip_df %>% filter(year == 2018) %>% pull(total) %>% sum()` inches. The total precipitatio in 2017 was `r precip_df %>% filter(year == 2017) %>% pull(total) %>% sum()` inches. 
+This dataset reports data from the Mr. Trashwheel trash collector in Baltimore, Maryland. The dataset contains information on year, month, and trash collected, include some specific kinds of trash. For the data of Trash Wheel, there are a total of `r nrow(trashwheel_df)` rows. The median number of sports balls found in a dumpster in 2017 was `r trashwheel_df %>% filter(year == 2017) %>% pull(sports_balls) %>% median()`.Additional data sheets include month precipitation data in year 2017 and year 2018. The dataset contains information on year, month, and total precipitation in each month. There are a total of `r nrow(precip_df)` rows. The total precipitation in 2018 was `r precip_df %>% filter(year == 2018) %>% pull(total) %>% sum()` inches. The total precipitation in 2017 was `r precip_df %>% filter(year == 2017) %>% pull(total) %>% sum()` inches. 
 
+##Problem 2
+I will read and clean the data
+```{r}
+NYC_Transit_data = read_csv("./data/NYC_Transit_Subway_Entrance_And_Exit_data.csv") %>% 
+janitor::clean_names() %>% 
+select(line, station_name, station_latitude, station_longitude, starts_with("route"), entry, vending, entrance_type, ada) %>% 
+mutate(entry = if_else(entry == "YES", T, F)) 
 
+```
+This dataset contains information on line, station name, specific location (longitude, latitude), route information, if there is an entry,if there is a vending, the entrance type, and if there is an APA compliance of each subway station in NYC. 
+I have clean the names of this dataset, drop several variabes that we are not interested in and mutate the entry variable to a logical variable.
+There are a total of `r nrow(NYC_Transit_data)` rows and a total of `r ncol(NYC_Transit_data)` columns.
+I do not think the data is tidy enough. For the route variables, I think we may combine them into a single variable. For example, for the first row, the value of route could be "RNNNNNNNNNN" where N stands for NA, and this will reduce 10 columns for our final data frame. In addition, since we dropped the variable "corner", several rows appear to be totally same and the difference between different rows which represent the same stations is relatively meaningless.For example, the reader of this dataset will not understand why row 4 and row 5 exist and the same time.
+
+There are `r nrow(distinct(NYC_Transit_data, line, station_name))` distinct stations, and `r filter(NYC_Transit_data, ada == T) %>% distinct(line,station_name) %>% nrow()` stations are ADA compliant. The proportion of station entrances / exits without vending allow entrance is `r filter(NYC_Transit_data, entry == T) %>% filter(vending == "NO") %>% nrow()/nrow(filter(NYC_Transit_data, vending == "NO"))`
+
+Then I will reformat data so that route number and route name are distinct variables.
+```{r}
+NYC_reformat_transit = 
+NYC_Transit_data %>% 
+mutate(
+  route8 = as.character(route8),
+  route9 = as.character(route9),
+  route10 = as.character(route10),
+  route11 = as.character(route11)) %>% 
+pivot_longer(
+    route1:route11,
+    names_to = "route_number",
+    values_to = "route_name" 
+) %>% 
+mutate(route_number = substr(route_number,6,8))
+```
+There are `r filter(NYC_reformat_transit, route_name == "A") %>% distinct(line, station_name) %>% nrow()` distinct stations serve the A train, and `r filter(NYC_reformat_transit, route_name == "A") %>% filter(ada == T) %>% distinct(line, station_name) %>%  nrow()` are ADA compliant.
 
