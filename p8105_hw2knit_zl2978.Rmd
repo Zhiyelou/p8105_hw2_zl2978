@@ -94,7 +94,69 @@ pivot_longer(
     names_to = "route_number",
     values_to = "route_name" 
 ) %>% 
-mutate(route_number = substr(route_number,6,8))
+mutate(route_number = substr(route_number,6,8)) 
 ```
 There are `r filter(NYC_reformat_transit, route_name == "A") %>% distinct(line, station_name) %>% nrow()` distinct stations serve the A train, and `r filter(NYC_reformat_transit, route_name == "A") %>% filter(ada == T) %>% distinct(line, station_name) %>%  nrow()` are ADA compliant.
 
+##Problem 3
+I will first read and tidy the data.
+```{r}
+pols_df = 
+  read_csv("./data/fivethirtyeight_datasets/pols-month.csv") %>% 
+janitor::clean_names() %>% 
+separate(mon, into = c("year","month","day"), sep = "-") %>%
+mutate(month = as.integer(month)) %>% 
+left_join(month_df, by = "month") %>% 
+mutate(month = month_name) %>% 
+select(-month_name) %>% 
+mutate(president = recode(prez_dem, "1" = "dem", "0" = "gop")) %>% 
+select(-prez_dem,-prez_gop,-day) %>% 
+relocate(year,month,president) 
+```
+
+Then I will clean the data in snp.csv.
+```{r}
+snp_df = 
+  read_csv("./data/fivethirtyeight_datasets/snp.csv") %>% 
+janitor::clean_names() %>% 
+separate(date, into = c("month","day","year"), sep = "/") %>%
+mutate(month = as.integer(month)) %>% 
+left_join(month_df, by = "month") %>% 
+mutate(month = month_name) %>% 
+select(-month_name,-day) %>% 
+relocate(year,month) 
+```
+I drop the day variable so that it can be merged with the other two data and easier to understand.
+
+Then I will tidy the unemployment data.
+```{r}
+monthabb_df = 
+    tibble(month = tolower(month.abb),
+           month_name = month.name)
+unemp_df = 
+  read_csv("./data/fivethirtyeight_datasets/unemployment.csv") %>% 
+janitor::clean_names() %>% 
+pivot_longer(
+  jan:dec,
+  names_to = "month",
+  values_to = "unemployment_rate"
+) %>% 
+left_join(monthabb_df, by = "month") %>% 
+mutate(month = month_name) %>% 
+select(-month_name)
+```
+
+Then I will join the datasets.
+```{r}
+merge_df =
+  merge(pols_df,snp_df) %>% 
+merge(unemp_df)
+```
+
+Until now, I have 4 datasets in total. The first one is pols_df which contains the information about the year, month, president type, the number of republican and democratic governors, the number of republican and democratic senators and the number of republican and democratic representatives on a given date. There are `r nrow(pols_df)` rows and `r ncol(pols_df)` columns. The range of the year is from `r min(pull(pols_df,year))` to `r max(pull(pols_df,year))`, one important variable in this data frame is the president which represents if the president is democratic or republican.
+
+The second one is snp.csv which contains the information about the year, month and the closing values of the S&P stock index on the associated date. The variable close represents the closing values of the stock index. There are `r nrow(snp_df)` rows and `r ncol(snp_df)` columns. The range of the year is from `r min(pull(snp_df, year))` to `r max(pull(snp_df, year))`. Besides, I drop the day variable for better merging with the other two data frame.
+
+The third one is unemp_df which contains the information about the year, month and the unemployment rate at that time. The variable unemployment_rate represents the unemployment rate. There are `r nrow(unemp_df)` rows and `r ncol(unemp_df)` columns. The range of the year is from `r min(pull(unemp_df,year))` to `r max(pull(unemp_df,year))`.
+
+The last one is the dataset that merge all three datasets and information together. It contains the information about the year, month, president type, the number of republican and democratic governors, the number of republican and democratic senators and the number of republican and democratic representatives on a given date, closing values of the stock index, and the unemployment rate. Key variables are president, unempolyment_rate and close. There are `r nrow(merge_df)` rows and `r ncol(merge_df)` columns. The range of the year is from `r min(pull(merge_df,year))` to `r max(pull(merge_df,year))`.
