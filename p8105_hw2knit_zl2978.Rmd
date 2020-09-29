@@ -112,6 +112,7 @@ mutate(president = recode(prez_gop, "1" = "gop", "0" = "dem")) %>%
 select(-prez_dem,-prez_gop,-day) %>% 
 relocate(year,month,president) 
 ```
+I did not recode the prez_gop = 2 and it changes to NA automatically.
 
 Then I will clean the data in snp.csv.
 ```{r}
