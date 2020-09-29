@@ -71,7 +71,6 @@ NYC_Transit_data = read_csv("./data/NYC_Transit_Subway_Entrance_And_Exit_data.cs
 janitor::clean_names() %>% 
 select(line, station_name, station_latitude, station_longitude, starts_with("route"), entry, vending, entrance_type, ada) %>% 
 mutate(entry = if_else(entry == "YES", T, F)) 
-
 ```
 This dataset contains information on line, station name, specific location (longitude, latitude), route information, if there is an entry,if there is a vending, the entrance type, and if there is an APA compliance of each subway station in NYC. 
 I have clean the names of this dataset, drop several variabes that we are not interested in and mutate the entry variable to a logical variable.
@@ -91,12 +90,12 @@ mutate(
   route11 = as.character(route11)) %>% 
 pivot_longer(
     route1:route11,
-    names_to = "route_number",
-    values_to = "route_name" 
+    names_to = "route_name",
+    values_to = "route_number" 
 ) %>% 
-mutate(route_number = substr(route_number,6,8)) 
+mutate(route_name = substr(route_name,6,8)) 
 ```
-There are `r filter(NYC_reformat_transit, route_name == "A") %>% distinct(line, station_name) %>% nrow()` distinct stations serve the A train, and `r filter(NYC_reformat_transit, route_name == "A") %>% filter(ada == T) %>% distinct(line, station_name) %>%  nrow()` are ADA compliant.
+There are `r filter(NYC_reformat_transit, route_number == "A") %>% distinct(line, station_name) %>% nrow()` distinct stations serve the A train, and `r filter(NYC_reformat_transit, route_number == "A") %>% filter(ada == T) %>% distinct(line, station_name) %>%  nrow()` are ADA compliant.
 
 ##Problem 3
 I will first read and tidy the data.
@@ -109,7 +108,7 @@ mutate(month = as.integer(month)) %>%
 left_join(month_df, by = "month") %>% 
 mutate(month = month_name) %>% 
 select(-month_name) %>% 
-mutate(president = recode(prez_dem, "1" = "dem", "0" = "gop")) %>% 
+mutate(president = recode(prez_gop, "1" = "gop", "0" = "dem")) %>% 
 select(-prez_dem,-prez_gop,-day) %>% 
 relocate(year,month,president) 
 ```
@@ -159,4 +158,6 @@ The second one is snp.csv which contains the information about the year, month a
 
 The third one is unemp_df which contains the information about the year, month and the unemployment rate at that time. The variable unemployment_rate represents the unemployment rate. There are `r nrow(unemp_df)` rows and `r ncol(unemp_df)` columns. The range of the year is from `r min(pull(unemp_df,year))` to `r max(pull(unemp_df,year))`.
 
-The last one is the dataset that merge all three datasets and information together. It contains the information about the year, month, president type, the number of republican and democratic governors, the number of republican and democratic senators and the number of republican and democratic representatives on a given date, closing values of the stock index, and the unemployment rate. Key variables are president, unempolyment_rate and close. There are `r nrow(merge_df)` rows and `r ncol(merge_df)` columns. The range of the year is from `r min(pull(merge_df,year))` to `r max(pull(merge_df,year))`.
+The last one is the dataset that merge all three datasets and information together. I have clean the names of all these three datasets. I have convert all the data variable in these three dataset to a same format which are year and month, and the month value are expressed as words. Besides, I have relocate the year and month as the first two columns.
+
+The last dataset contains the information about the year, month, president type, the number of republican and democratic governors, the number of republican and democratic senators and the number of republican and democratic representatives on a given date, closing values of the stock index, and the unemployment rate. Key variables are president, unempolyment_rate and close. There are `r nrow(merge_df)` rows and `r ncol(merge_df)` columns. The range of the year is from `r min(pull(merge_df,year))` to `r max(pull(merge_df,year))`.
