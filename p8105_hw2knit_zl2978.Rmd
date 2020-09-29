@@ -10,12 +10,12 @@ library(readxl)
 ```
 
 ## Problem 1
-I will first set the path to the data
+I will first set the path to the data.
 ```{r}
 path_to_data_TW = "./data/Trash-Wheel-Collection-Totals-8-6-19.xlsx"
 ```
 
-Then I will read the data and clean the data
+Then I will read the data and clean the data.
 ```{r}
 trashwheel_df = read_xlsx(
     path = path_to_data_TW,
@@ -29,7 +29,7 @@ mutate(
 )
 ```
 
-Then I will read and clean precipitation data for 2017 and 2018
+Then I will read and clean precipitation data for 2017 and 2018.
 ```{r}
 ppt_2017 = read_xlsx(
     path = path_to_data_TW,
@@ -50,7 +50,7 @@ mutate(year = 2018) %>%
 relocate(year)
 ```
 
-Next, I will combine precipitation datasets and convert month to a character variable
+Next, I will combine precipitation datasets and convert month to a character variable.
 ```{r}
 month_df = 
     tibble(month = 1:12,
@@ -65,7 +65,7 @@ select(-month)
 This dataset reports data from the Mr. Trashwheel trash collector in Baltimore, Maryland. The dataset contains information on year, month, and trash collected, include some specific kinds of trash. For the data of Trash Wheel, there are a total of `r nrow(trashwheel_df)` rows. The median number of sports balls found in a dumpster in 2017 was `r trashwheel_df %>% filter(year == 2017) %>% pull(sports_balls) %>% median()`.Additional data sheets include month precipitation data in year 2017 and year 2018. The dataset contains information on year, month, and total precipitation in each month. There are a total of `r nrow(precip_df)` rows. The total precipitation in 2018 was `r precip_df %>% filter(year == 2018) %>% pull(total) %>% sum()` inches. The total precipitation in 2017 was `r precip_df %>% filter(year == 2017) %>% pull(total) %>% sum()` inches. 
 
 ##Problem 2
-I will read and clean the data
+I will read and clean the data.
 ```{r}
 NYC_Transit_data = read_csv("./data/NYC_Transit_Subway_Entrance_And_Exit_data.csv") %>% 
 janitor::clean_names() %>% 
